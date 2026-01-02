@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Join Circle Master</title>
+    <script>
+        // Get room code from URL
+        const params = new URLSearchParams(window.location.search);
+        const room = params.get('room');
+        
+        if (room) {
+            // Try to open the app
+            window.location.href = 'circlemaster://join?room=' + room;
+            
+            // If app not installed, redirect to Play Store after 2 seconds
+            setTimeout(function() {
+                window.location.href = 'https://play.google.com/store/apps/details?id=com.circlemaster.mawsika';
+            }, 2000);
+        }
+    </script>
+</head>
+<body>
+    <h1>Opening Circle Master...</h1>
+    <p>If the app doesn't open, <a href="https://play.google.com/store/apps/details?id=com.circlemaster.mawsika">download it here</a></p>
+</body>
+</html>
