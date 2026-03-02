@@ -7,7 +7,7 @@
 const params = new URLSearchParams(window.location.search);
 const room = params.get('room');
 
-// Remove query params so link isn't persistent
+// Immediately remove query params so the link doesn't persist in the browser
 window.history.replaceState({}, document.title, window.location.pathname);
 
 function getOS() {
@@ -22,31 +22,61 @@ function getOS() {
 
 if (room) {
     const os = getOS();
+    let fallbackTimer = null;
 
-    let appStoreUrl = 'https://play.google.com/store/apps/details?id=com.circlemaster.mawsika';
-    let deepLink = 'circlemaster://join?room=' + room;
+    if (os === 'Android') {
+        // Android Intent URL: opens the app if installed, falls back to Play Store if not.
+        // This prevents BOTH the app and the store from opening at the same time.
+        const intentUrl = 'intent://join?room=' + encodeURIComponent(room)
+            + '#Intent'
+            + ';scheme=circlemaster'
+            + ';package=com.circlemaster.mawsika'
+            + ';S.browser_fallback_url=' + encodeURIComponent('https://play.google.com/store/apps/details?id=com.circlemaster.mawsika')
+            + ';end';
 
-    if (os === 'iOS' || os === 'Mac') {
-        appStoreUrl = 'https://apps.apple.com/app/id6745800816';
+        window.location.replace(intentUrl);
+
+    } else if (os === 'iOS' || os === 'Mac') {
+        // iOS: use custom scheme deep link, fallback to App Store only if app didn't open
+        const deepLink = 'circlemaster://join?room=' + encodeURIComponent(room);
+        const appStoreUrl = 'https://apps.apple.com/app/id6745800816';
+
+        // When the page becomes hidden, the app opened — cancel the store fallback
+        document.addEventListener("visibilitychange", function () {
+            if (document.hidden) {
+                clearTimeout(fallbackTimer);
+                // Try to blank this tab so returning to the browser doesn't re-trigger anything
+                setTimeout(function () {
+                    window.location.replace('about:blank');
+                }, 500);
+            }
+        });
+
+        window.addEventListener("pagehide", function () {
+            clearTimeout(fallbackTimer);
+        });
+
+        // Use an iframe to attempt the deep link — this avoids navigating the page itself
+        const iframe = document.createElement('iframe');
+        iframe.style.display = 'none';
+        iframe.src = deepLink;
+        document.body.appendChild(iframe);
+
+        // Also try direct navigation as backup (some iOS versions need it)
+        window.location.replace(deepLink);
+
+        // Fallback: if the app didn't open after 1.5s, go to the App Store
+        fallbackTimer = setTimeout(function () {
+            if (!document.hidden) {
+                window.location.replace(appStoreUrl);
+            }
+        }, 1500);
+
+    } else {
+        // Desktop / other: just show the page with download links
+        document.getElementById('storeLink').innerHTML =
+            '<a href="https://play.google.com/store/apps/details?id=com.circlemaster.mawsika">Download from Play Store</a>';
     }
-
-    let appOpened = false;
-
-    document.addEventListener("visibilitychange", function () {
-        if (document.hidden) {
-            appOpened = true;
-        }
-    });
-
-    // Try opening app
-    window.location.href = deepLink;
-
-    // Fallback
-    setTimeout(function () {
-        if (!appOpened) {
-            window.location.href = appStoreUrl;
-        }
-    }, 1500);
 }
 </script>
 </head>
