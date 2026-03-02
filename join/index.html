@@ -3,60 +3,52 @@
 <head>
     <meta charset="UTF-8">
     <title>Join Circle Master</title>
-    <script>
-        const params = new URLSearchParams(window.location.search);
-        const room = params.get('room');
-        
-        // Detect operating system
-        function getOS() {
-            const userAgent = navigator.userAgent || navigator.vendor || window.opera;
-            
-            // iOS detection
-            if (/iPad|iPhone|iPod/.test(userAgent) && !window.MSStream) {
-                return 'iOS';
-            }
-            
-            // Android detection
-            if (/android/i.test(userAgent)) {
-                return 'Android';
-            }
-            
-            // Mac detection (for desktop users)
-            if (/Macintosh|MacIntel|MacPPC|Mac68K/.test(userAgent)) {
-                return 'Mac';
-            }
-            
-            return 'Other';
+<script>
+const params = new URLSearchParams(window.location.search);
+const room = params.get('room');
+
+// Remove query params so link isn't persistent
+window.history.replaceState({}, document.title, window.location.pathname);
+
+function getOS() {
+    const userAgent = navigator.userAgent || navigator.vendor || window.opera;
+
+    if (/iPad|iPhone|iPod/.test(userAgent) && !window.MSStream) return 'iOS';
+    if (/android/i.test(userAgent)) return 'Android';
+    if (/Macintosh|MacIntel|MacPPC|Mac68K/.test(userAgent)) return 'Mac';
+
+    return 'Other';
+}
+
+if (room) {
+    const os = getOS();
+
+    let appStoreUrl = 'https://play.google.com/store/apps/details?id=com.circlemaster.mawsika';
+    let deepLink = 'circlemaster://join?room=' + room;
+
+    if (os === 'iOS' || os === 'Mac') {
+        appStoreUrl = 'https://apps.apple.com/app/id6745800816';
+    }
+
+    let appOpened = false;
+
+    document.addEventListener("visibilitychange", function () {
+        if (document.hidden) {
+            appOpened = true;
         }
-        
-        if (room) {
-            const os = getOS();
-            let appStoreUrl;
-            let deepLink;
-            
-            if (os === 'iOS' || os === 'Mac') {
-                // Apple App Store - REPLACE WITH YOUR NUMERIC APP ID
-                appStoreUrl = 'https://apps.apple.com/app/id6745800816';
-                deepLink = 'circlemaster://join?room=' + room;
-            } else if (os === 'Android') {
-                // Google Play Store
-                appStoreUrl = 'https://play.google.com/store/apps/details?id=com.circlemaster.mawsika';
-                deepLink = 'circlemaster://join?room=' + room;
-            } else {
-                // Default to Google Play Store for other platforms
-                appStoreUrl = 'https://play.google.com/store/apps/details?id=com.circlemaster.mawsika';
-                deepLink = 'circlemaster://join?room=' + room;
-            }
-            
-            // Try to open the app
-            window.location.href = deepLink;
-            
-            // If app not installed, go to appropriate Store after 1.5 seconds
-            setTimeout(function() {
-                window.location.href = appStoreUrl;
-            }, 1500);
+    });
+
+    // Try opening app
+    window.location.href = deepLink;
+
+    // Fallback
+    setTimeout(function () {
+        if (!appOpened) {
+            window.location.href = appStoreUrl;
         }
-    </script>
+    }, 1500);
+}
+</script>
 </head>
 <body style="font-family: Arial; text-align: center; padding: 50px;">
     <h1>🎮 Opening Circle Master...</h1>
