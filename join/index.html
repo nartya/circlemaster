@@ -37,7 +37,9 @@ if (room) {
         window.location.replace(intentUrl);
 
     } else if (os === 'iOS' || os === 'Mac') {
-        // iOS: use custom scheme deep link, fallback to App Store only if app didn't open
+        // iOS: try custom scheme deep link, fallback to App Store if app didn't open.
+        // NOTE: This works in Safari. For in-app browsers (iMessage, WhatsApp, etc.),
+        // Universal Links are needed — see README for setup instructions.
         const deepLink = 'circlemaster://join?room=' + encodeURIComponent(room);
         const appStoreUrl = 'https://apps.apple.com/app/id6745800816';
 
@@ -45,10 +47,6 @@ if (room) {
         document.addEventListener("visibilitychange", function () {
             if (document.hidden) {
                 clearTimeout(fallbackTimer);
-                // Try to blank this tab so returning to the browser doesn't re-trigger anything
-                setTimeout(function () {
-                    window.location.replace('about:blank');
-                }, 500);
             }
         });
 
@@ -56,21 +54,17 @@ if (room) {
             clearTimeout(fallbackTimer);
         });
 
-        // Use an iframe to attempt the deep link — this avoids navigating the page itself
-        const iframe = document.createElement('iframe');
-        iframe.style.display = 'none';
-        iframe.src = deepLink;
-        document.body.appendChild(iframe);
+        // Use window.location.href (not .replace) — more compatible on iOS Safari
+        // Do NOT use an iframe — iOS blocks custom schemes from hidden iframes
+        window.location.href = deepLink;
 
-        // Also try direct navigation as backup (some iOS versions need it)
-        window.location.replace(deepLink);
-
-        // Fallback: if the app didn't open after 1.5s, go to the App Store
+        // Fallback: if the app didn't open after 2.5s, go to the App Store
+        // (increased from 1.5s to give slower devices time to respond)
         fallbackTimer = setTimeout(function () {
             if (!document.hidden) {
                 window.location.replace(appStoreUrl);
             }
-        }, 1500);
+        }, 2500);
 
     } else {
         // Desktop / other: just show the page with download links
