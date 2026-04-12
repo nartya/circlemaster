@@ -1,9 +1,12 @@
 {
   "applinks": {
-    "apps": [],
     "details": [{
-      "appID": "PFJ48242H5.com.circlemaster.mawsika",
-      "paths": ["/circlemaster/join/*"]
+      "appIDs": ["PFJ48242H5.com.circlemaster.mawsika"],
+      "components": [
+        { "/": "/join" },
+        { "/": "/join/" },
+        { "/": "/join/*" }
+      ]
     }]
   }
 }

@@ -37,34 +37,18 @@ if (room) {
         window.location.replace(intentUrl);
 
     } else if (os === 'iOS' || os === 'Mac') {
-        // iOS: try custom scheme deep link, fallback to App Store if app didn't open.
-        // NOTE: This works in Safari. For in-app browsers (iMessage, WhatsApp, etc.),
-        // Universal Links are needed — see README for setup instructions.
-        const deepLink = 'circlemaster://join?room=' + encodeURIComponent(room);
+        // iOS Universal Links: if the app is installed, iOS intercepts the HTTPS link
+        // BEFORE this page even loads, and opens the app directly.
+        // If we reach this code, it means the app is NOT installed.
+        // → Show the App Store link as fallback (no custom scheme needed).
         const appStoreUrl = 'https://apps.apple.com/app/id6745800816';
 
-        // When the page becomes hidden, the app opened — cancel the store fallback
-        document.addEventListener("visibilitychange", function () {
-            if (document.hidden) {
-                clearTimeout(fallbackTimer);
+        document.addEventListener("DOMContentLoaded", function () {
+            const storeLink = document.getElementById('storeLink');
+            if (storeLink) {
+                storeLink.innerHTML = '<a href="' + appStoreUrl + '">Download from App Store</a>';
             }
         });
-
-        window.addEventListener("pagehide", function () {
-            clearTimeout(fallbackTimer);
-        });
-
-        // Use window.location.href (not .replace) — more compatible on iOS Safari
-        // Do NOT use an iframe — iOS blocks custom schemes from hidden iframes
-        window.location.href = deepLink;
-
-        // Fallback: if the app didn't open after 2.5s, go to the App Store
-        // (increased from 1.5s to give slower devices time to respond)
-        fallbackTimer = setTimeout(function () {
-            if (!document.hidden) {
-                window.location.replace(appStoreUrl);
-            }
-        }, 2500);
 
     } else {
         // Desktop / other: just show the page with download links
