@@ -3,9 +3,7 @@
     "details": [{
       "appIDs": ["PFJ48242H5.com.circlemaster.mawsika"],
       "components": [
-        { "/": "/join" },
-        { "/": "/join/" },
-        { "/": "/join/*" }
+        { "/": "/join*" }
       ]
     }]
   }
