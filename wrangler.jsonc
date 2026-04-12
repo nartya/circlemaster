@@ -5,8 +5,11 @@
   "observability": {
     "enabled": true
   },
+
+  "main": "src/index.js",
   "assets": {
-    "directory": "join"
+    "directory": "join",
+    "binding": "ASSETS"
   },
   "compatibility_flags": [
     "nodejs_compat"
