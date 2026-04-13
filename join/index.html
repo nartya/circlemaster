@@ -37,18 +37,39 @@ if (room) {
         window.location.replace(intentUrl);
 
     } else if (os === 'iOS' || os === 'Mac') {
-        // iOS Universal Links: if the app is installed, iOS intercepts the HTTPS link
-        // BEFORE this page even loads, and opens the app directly.
-        // If we reach this code, it means the app is NOT installed.
-        // → Show the App Store link as fallback (no custom scheme needed).
+        // iOS Universal Links: if the app is installed AND Universal Links are validated,
+        // iOS intercepts the HTTPS link BEFORE this page loads → app opens directly.
+        //
+        // If we reach this code, either:
+        //   a) Universal Links aren't set up yet (Apple CDN delay), OR
+        //   b) The app is not installed.
+        //
+        // Fallback strategy: try custom scheme to open the app immediately.
+        // If that fails (app not installed), redirect to App Store after a delay.
+
+        const deepLink = 'circlemaster://join?room=' + encodeURIComponent(room);
         const appStoreUrl = 'https://apps.apple.com/app/id6745800816';
 
-        document.addEventListener("DOMContentLoaded", function () {
-            const storeLink = document.getElementById('storeLink');
-            if (storeLink) {
-                storeLink.innerHTML = '<a href="' + appStoreUrl + '">Download from App Store</a>';
+        // Track if the app opened (page becomes hidden)
+        document.addEventListener("visibilitychange", function () {
+            if (document.hidden) {
+                clearTimeout(fallbackTimer);
             }
         });
+
+        window.addEventListener("pagehide", function () {
+            clearTimeout(fallbackTimer);
+        });
+
+        // Try opening via custom scheme
+        window.location.href = deepLink;
+
+        // Fallback: if the app didn't open after 2.5s, redirect to App Store
+        fallbackTimer = setTimeout(function () {
+            if (!document.hidden) {
+                window.location.replace(appStoreUrl);
+            }
+        }, 2500);
 
     } else {
         // Desktop / other: just show the page with download links
