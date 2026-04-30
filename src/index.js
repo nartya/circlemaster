@@ -31,18 +31,11 @@ export default {
   <title>Join Circle Master</title>
   <script>
     const room = "${room}";
-    if (room) {
-      const ua = navigator.userAgent || "";
-      if (/iPad|iPhone|iPod/.test(ua)) {
-        window.location.href = "circlemaster://join?room=" + encodeURIComponent(room);
-      } else if (/android/i.test(ua)) {
-        window.location.replace(
-          "intent://join?room=" + encodeURIComponent(room)
-          + "#Intent;scheme=circlemaster;package=com.circlemaster.mawsika"
-          + ";S.browser_fallback_url=" + encodeURIComponent("https://play.google.com/store/apps/details?id=com.circlemaster.mawsika")
-          + ";end"
-        );
-      }
+    const ua = navigator.userAgent || "";
+    if (/android/i.test(ua)) {
+      window.location.replace("https://play.google.com/store/apps/details?id=com.circlemaster.mawsika");
+    } else if (/iPad|iPhone|iPod|Macintosh|MacIntel|MacPPC|Mac68K/.test(ua)) {
+      window.location.replace("https://apps.apple.com/app/id6745800816");
     }
   </script>
 </head>
